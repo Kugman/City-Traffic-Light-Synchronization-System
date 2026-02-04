@@ -2,7 +2,7 @@
 # This file tells GitHub to recognize this as a HIP/C++ project
 
 # Treat .hip files as C++ for proper syntax highlighting and language detection
-*.hip linguist-language=C++
+*.hip linguist-language=HIP
 
 # Mark HTML as documentation (so it doesn't dominate language stats)
 *.html linguist-documentation
