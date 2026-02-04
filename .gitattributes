@@ -1,0 +1,17 @@
+# GitHub Linguist Configuration
+# This file tells GitHub to recognize this as a HIP/C++ project
+
+# Treat .hip files as C++ for proper syntax highlighting and language detection
+*.hip linguist-language=C++
+
+# Mark HTML as documentation (so it doesn't dominate language stats)
+*.html linguist-documentation
+
+# Mark JSON output files as generated
+*.json linguist-generated
+
+# Optionally: Mark Python as a supporting language (not documentation)
+*.py linguist-detectable
+
+# Mark README as documentation
+README.md linguist-documentation
