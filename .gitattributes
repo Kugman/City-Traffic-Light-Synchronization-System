@@ -4,6 +4,9 @@
 # Treat .hip files as C++ for proper syntax highlighting and language detection
 *.hip linguist-language=HIP
 
+# Mark Python management script as vendored (supporting tool, not primary code)
+traffic_manager.py linguist-vendored
+
 # Mark HTML as documentation (so it doesn't dominate language stats)
 *.html linguist-documentation
 
@@ -11,7 +14,7 @@
 *.json linguist-generated
 
 # Optionally: Mark Python as a supporting language (not documentation)
-*.py linguist-detectable
+#*.py linguist-detectable
 
 # Mark README as documentation
 README.md linguist-documentation
