@@ -274,4 +274,4 @@ This is a demonstration project showing HIP development advantages. Feel free to
 
 ---
 
-**Built with HIP** - Portable. Powerful. Practical.
+**Built with HIP**
