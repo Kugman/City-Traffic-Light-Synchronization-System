@@ -226,7 +226,6 @@ if traffic_density > threshold:
 ```
 .
 ├── traffic_sync.hip              # Main HIP kernel code
-├── CMakeLists.txt                # Build configuration
 ├── traffic_manager.py            # Python management system
 ├── traffic_visualization.html    # Web interface
 └── README.md                     # This file
@@ -274,10 +273,6 @@ def handle_emergency_vehicle(self, route, vehicle_type):
 - [ ] Real sensor data integration
 - [ ] Mobile app for emergency vehicles
 - [ ] 3D visualization with WebGL
-
-## 📝 License
-
-This project is provided as an educational example of HIP programming for GPU-accelerated traffic management systems.
 
 ## 🤝 Contributing
 
