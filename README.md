@@ -31,48 +31,26 @@ This system demonstrates the advantages of HIP development by creating a portabl
 ## 🏗️ Architecture
 
 ```
-┌─────────────────────────────────────────────────────┐
-│                   Web Interface                     │
-│            (traffic_visualization.html)             │
-└────────────────────┬────────────────────────────────┘
+┌───────────────────────────────────────────────────────────┐
+│         Web Browser (traffic_visualization_connected.html)│
+│         - Real-time visualization                         │
+│         - Interactive controls                            │
+└────────────────────┬──────────────────────────────────────┘
+                     │ WebSocket + REST API
+                     │ (Socket.IO)
+┌────────────────────▼─────────────────────────────────────┐
+│              Flask Web Server (traffic_server.py)        │
+│              - REST API endpoints                        │
+│              - WebSocket broadcasting                    │
+│              - Real-time updates                         │
+└────────────────────┬─────────────────────────────────────┘
                      │
-┌────────────────────▼────────────────────────────────┐
-│              Management Layer                       │
-│             (traffic_manager.py)                    │
-│  - Traffic Simulation                               │
-│  - Emergency Handling                               │
-│  - Metrics Calculation                              │
-└────────────────────┬────────────────────────────────┘
-                     │
-┌────────────────────▼────────────────────────────────┐
-│            GPU Compute Layer (HIP)                  │
-│             (traffic_sync.hip)                      │
-│                                                     │
-│  ┌──────────────────────────────────────────────┐   │
-│  │ updateTrafficLights Kernel                   │   │
-│  │ - State transitions (Red→Yellow→Green)       │   │
-│  └──────────────────────────────────────────────┘   │
-│                                                     │
-│  ┌──────────────────────────────────────────────┐   │
-│  │ optimizeGreenDurations Kernel                │   │
-│  │ - Adaptive timing based on traffic density   │   │
-│  └──────────────────────────────────────────────┘   │
-│                                                     │
-│  ┌──────────────────────────────────────────────┐   │
-│  │ synchronizeGreenWave Kernel                  │   │
-│  │ - Coordinate lights for progressive flow     │   │
-│  └──────────────────────────────────────────────┘   │
-│                                                     │
-│  ┌──────────────────────────────────────────────┐   │
-│  │ detectCongestion Kernel                      │   │
-│  │ - Identify and respond to traffic jams       │   │
-│  └──────────────────────────────────────────────┘   │
-│                                                     │
-│  ┌──────────────────────────────────────────────┐   │
-│  │ calculateFlowMetrics Kernel                  │   │
-│  │ - Parallel reduction for statistics          │   │
-│  └──────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────┘
+┌────────────────────▼─────────────────────────────────────┐
+│         Traffic Management System (traffic_manager.py)   │
+│         - Simulation engine                              │
+│         - Traffic optimization                           │
+│         - Emergency handling                             │
+└──────────────────────────────────────────────────────────┘
 ```
 
 ## 🚀 Why HIP?
