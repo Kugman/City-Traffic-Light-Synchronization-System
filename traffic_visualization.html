@@ -1,12 +1,10 @@
 <!-- This web browser simulator created by CLAUDE AI -->
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>City Traffic Light Control Center</title>
+    <title>City Traffic Light Control Center - Live</title>
     <style>
         * {
             margin: 0;
@@ -41,6 +39,25 @@
         .subtitle {
             font-size: 1.2em;
             opacity: 0.9;
+        }
+
+        .live-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ef4444;
+            margin-left: 10px;
+            animation: pulse 2s infinite;
+        }
+
+        .live-indicator.connected {
+            background: #10b981;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
 
         .dashboard {
@@ -142,10 +159,11 @@
         }
 
         .traffic-light.emergency {
-            animation: pulse 0.5s infinite;
+            animation: emergency-pulse 0.5s infinite;
+            border-color: #fff;
         }
 
-        @keyframes pulse {
+        @keyframes emergency-pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.6; }
         }
@@ -170,6 +188,11 @@
             background: rgba(255,255,255,0.3);
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
         .btn.primary {
@@ -209,6 +232,11 @@
         .alert-item.info {
             background: rgba(59, 130, 246, 0.2);
             border-color: #3b82f6;
+        }
+
+        .alert-item.success {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: #10b981;
         }
 
         .status-indicator {
@@ -253,14 +281,32 @@
             opacity: 0.7;
             margin-top: 20px;
         }
+
+        .connection-status {
+            text-align: center;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            background: rgba(239, 68, 68, 0.2);
+            border: 2px solid #ef4444;
+        }
+
+        .connection-status.connected {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: #10b981;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>🚦 City Traffic Light Control Center</h1>
-            <div class="subtitle">Real-time Traffic Management & Synchronization</div>
+            <h1>🚦 City Traffic Light Control Center <span class="live-indicator" id="live-indicator"></span></h1>
+            <div class="subtitle">Real-time Traffic Management & Synchronization - LIVE DATA</div>
         </header>
+
+        <div class="connection-status" id="connection-status">
+            <strong>⚠️ Connecting to server...</strong>
+        </div>
 
         <div class="dashboard">
             <!-- Left Panel: System Metrics -->
@@ -268,25 +314,25 @@
                 <h2>System Metrics</h2>
                 <div class="metric">
                     <div class="metric-label">Traffic Density</div>
-                    <div class="metric-value" id="traffic-density">45%</div>
+                    <div class="metric-value" id="traffic-density">--</div>
                     <div class="metric-bar">
-                        <div class="metric-bar-fill" id="density-bar" style="width: 45%"></div>
+                        <div class="metric-bar-fill" id="density-bar" style="width: 0%"></div>
                     </div>
                 </div>
                 <div class="metric">
                     <div class="metric-label">System Efficiency</div>
-                    <div class="metric-value" id="efficiency">87%</div>
+                    <div class="metric-value" id="efficiency">--</div>
                     <div class="metric-bar">
-                        <div class="metric-bar-fill" id="efficiency-bar" style="width: 87%"></div>
+                        <div class="metric-bar-fill" id="efficiency-bar" style="width: 0%"></div>
                     </div>
                 </div>
                 <div class="metric">
-                    <div class="metric-label">Avg Wait Time</div>
-                    <div class="metric-value" id="wait-time">32s</div>
+                    <div class="metric-label">Avg Green Duration</div>
+                    <div class="metric-value" id="green-duration">--</div>
                 </div>
                 <div class="metric">
                     <div class="metric-label">Active Lights</div>
-                    <div class="metric-value" id="active-lights">256/256</div>
+                    <div class="metric-value" id="active-lights">--</div>
                 </div>
                 <div class="metric">
                     <div class="metric-label">Emergency Routes</div>
@@ -296,7 +342,7 @@
 
             <!-- Center Panel: Traffic Grid -->
             <div class="panel">
-                <h2>Traffic Grid Visualization (16×16 Sample)</h2>
+                <h2>Traffic Grid Visualization (16×16 Live)</h2>
                 <div class="grid-container">
                     <div class="traffic-grid" id="traffic-grid"></div>
                     <div class="legend">
@@ -315,12 +361,16 @@
                     </div>
                 </div>
                 <div class="controls">
+                    <button class="btn success" onclick="startSimulation()" id="btn-start">
+                        <span class="status-indicator active"></span>
+                        Start Simulation
+                    </button>
+                    <button class="btn danger" onclick="stopSimulation()" id="btn-stop" disabled>
+                        <span class="status-indicator inactive"></span>
+                        Stop Simulation
+                    </button>
                     <button class="btn primary" onclick="optimizeAll()">Optimize All Lights</button>
                     <button class="btn success" onclick="createGreenWave()">Create Green Wave</button>
-                    <button class="btn" onclick="toggleSimulation()">
-                        <span class="status-indicator active"></span>
-                        <span id="sim-status">Pause Simulation</span>
-                    </button>
                 </div>
             </div>
 
@@ -329,8 +379,8 @@
                 <h2>System Alerts</h2>
                 <div class="alert-list" id="alert-list">
                     <div class="alert-item info">
-                        <strong>System Online</strong><br>
-                        All traffic lights operational
+                        <strong>System Ready</strong><br>
+                        Waiting for connection...
                     </div>
                 </div>
                 <h2 style="margin-top: 30px;">Emergency Control</h2>
@@ -346,14 +396,21 @@
         <div id="timestamp"></div>
     </div>
 
+    <!-- Socket.IO Client -->
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    
     <script>
-        // System state
-        let lights = [];
-        let simulationRunning = true;
-        let emergencyActive = false;
+        // Configuration
+        const API_URL = 'http://localhost:5000';
         const GRID_SIZE = 16;
+        
+        // State
+        let lights = [];
+        let socket = null;
+        let isConnected = false;
+        let simulationRunning = false;
 
-        // Initialize traffic grid
+        // Initialize grid
         function initializeGrid() {
             const grid = document.getElementById('traffic-grid');
             grid.innerHTML = '';
@@ -364,23 +421,15 @@
                 light.dataset.id = i;
                 light.onclick = () => showLightDetails(i);
                 grid.appendChild(light);
-                
-                lights.push({
-                    id: i,
-                    state: Math.floor(Math.random() * 3),
-                    timer: Math.random() * 30,
-                    density: Math.random(),
-                    emergency: false
-                });
             }
-            
-            updateGrid();
         }
 
         // Update grid visualization
-        function updateGrid() {
-            lights.forEach((light, i) => {
-                const element = document.querySelector(`[data-id="${i}"]`);
+        function updateGrid(lightsData) {
+            lightsData.forEach((light) => {
+                const element = document.querySelector(`[data-id="${light.id}"]`);
+                if (!element) return;
+                
                 const states = ['red', 'yellow', 'green'];
                 element.className = 'traffic-light ' + states[light.state];
                 
@@ -390,58 +439,25 @@
             });
         }
 
-        // Update system metrics
-        function updateMetrics() {
-            const avgDensity = lights.reduce((sum, l) => sum + l.density, 0) / lights.length;
-            const greenLights = lights.filter(l => l.state === 2).length;
-            const efficiency = (greenLights / lights.length) * 100;
+        // Update metrics display
+        function updateMetrics(metrics) {
+            const avgDensity = metrics.avg_traffic_density * 100;
+            const efficiency = (1 - avgDensity / 100) * 100; // Simplified efficiency
             
             document.getElementById('traffic-density').textContent = 
-                Math.round(avgDensity * 100) + '%';
+                Math.round(avgDensity) + '%';
             document.getElementById('density-bar').style.width = 
-                Math.round(avgDensity * 100) + '%';
+                Math.round(avgDensity) + '%';
             document.getElementById('efficiency').textContent = 
                 Math.round(efficiency) + '%';
             document.getElementById('efficiency-bar').style.width = 
                 Math.round(efficiency) + '%';
-            document.getElementById('wait-time').textContent = 
-                Math.round(20 + Math.random() * 30) + 's';
+            document.getElementById('green-duration').textContent = 
+                Math.round(metrics.avg_green_duration) + 's';
             document.getElementById('active-lights').textContent = 
-                `${lights.length}/${GRID_SIZE * GRID_SIZE}`;
-        }
-
-        // Simulation step
-        function simulate() {
-            if (!simulationRunning) return;
-            
-            lights.forEach(light => {
-                light.timer -= 0.1;
-                
-                if (light.timer <= 0) {
-                    if (!light.emergency) {
-                        light.state = (light.state + 1) % 3;
-                        light.timer = light.state === 2 ? 30 : (light.state === 1 ? 3 : 2);
-                    }
-                }
-                
-                // Simulate density changes
-                light.density += (Math.random() - 0.5) * 0.02;
-                light.density = Math.max(0, Math.min(1, light.density));
-            });
-            
-            updateGrid();
-            updateMetrics();
-            checkCongestion();
-        }
-
-        // Check for congestion
-        function checkCongestion() {
-            const congested = lights.filter(l => l.density > 0.75);
-            
-            if (congested.length > 10 && Math.random() < 0.01) {
-                addAlert('warning', 'High Congestion Detected', 
-                    `${congested.length} intersections experiencing heavy traffic`);
-            }
+                `${metrics.total_intersections}/${metrics.total_intersections}`;
+            document.getElementById('emergency-routes').textContent = 
+                metrics.emergency_routes_active;
         }
 
         // Add alert
@@ -459,111 +475,154 @@
             }
         }
 
-        // Optimize all lights
-        function optimizeAll() {
-            lights.forEach(light => {
-                const optimalDuration = 20 + light.density * 40;
-                light.timer = optimalDuration;
-            });
-            
-            addAlert('info', 'Optimization Complete', 
-                'All traffic light timings have been optimized');
-        }
-
-        // Create green wave
-        function createGreenWave() {
-            const row = Math.floor(GRID_SIZE / 2);
-            
-            for (let x = 0; x < GRID_SIZE; x++) {
-                const id = row * GRID_SIZE + x;
-                setTimeout(() => {
-                    lights[id].state = 2;
-                    lights[id].timer = 30;
-                    updateGrid();
-                }, x * 200);
-            }
-            
-            addAlert('success', 'Green Wave Activated', 
-                `Progressive green wave created on row ${row}`);
-        }
-
-        // Activate emergency route
-        function activateEmergency(type) {
-            emergencyActive = true;
-            document.getElementById('emergency-routes').textContent = '1';
-            
-            const row = Math.floor(Math.random() * GRID_SIZE);
-            
-            for (let x = 0; x < GRID_SIZE; x++) {
-                const id = row * GRID_SIZE + x;
-                lights[id].state = 2;
-                lights[id].emergency = true;
-                lights[id].timer = 60;
-            }
-            
-            updateGrid();
-            
-            const symbols = {ambulance: '🚑', fire: '🚒', police: '🚓'};
-            addAlert('danger', 'Emergency Route Active', 
-                `${symbols[type]} ${type.toUpperCase()} route cleared on row ${row}`);
-        }
-
-        // Clear emergency
-        function clearEmergency() {
-            emergencyActive = false;
-            document.getElementById('emergency-routes').textContent = '0';
-            
-            lights.forEach(light => {
-                light.emergency = false;
-            });
-            
-            updateGrid();
-            addAlert('info', 'Emergency Cleared', 'Returning to normal operation');
-        }
-
-        // Toggle simulation
-        function toggleSimulation() {
-            simulationRunning = !simulationRunning;
-            const status = document.getElementById('sim-status');
-            const indicator = document.querySelector('.controls .status-indicator');
-            
-            if (simulationRunning) {
-                status.textContent = 'Pause Simulation';
-                indicator.classList.add('active');
-            } else {
-                status.textContent = 'Resume Simulation';
-                indicator.classList.remove('active');
+        // API calls
+        async function startSimulation() {
+            try {
+                const response = await fetch(`${API_URL}/api/start`, { method: 'POST' });
+                const data = await response.json();
+                
+                simulationRunning = true;
+                document.getElementById('btn-start').disabled = true;
+                document.getElementById('btn-stop').disabled = false;
+                
+                addAlert('success', 'Simulation Started', 'Real-time traffic simulation is now running');
+            } catch (error) {
+                addAlert('danger', 'Error', 'Failed to start simulation: ' + error.message);
             }
         }
 
-        // Show light details
+        async function stopSimulation() {
+            try {
+                const response = await fetch(`${API_URL}/api/stop`, { method: 'POST' });
+                const data = await response.json();
+                
+                simulationRunning = false;
+                document.getElementById('btn-start').disabled = false;
+                document.getElementById('btn-stop').disabled = true;
+                
+                addAlert('info', 'Simulation Stopped', 'Real-time updates paused');
+            } catch (error) {
+                addAlert('danger', 'Error', 'Failed to stop simulation: ' + error.message);
+            }
+        }
+
+        async function optimizeAll() {
+            try {
+                const response = await fetch(`${API_URL}/api/optimize`, { method: 'POST' });
+                const data = await response.json();
+                addAlert('info', 'Optimization Complete', 'All traffic light timings optimized');
+            } catch (error) {
+                addAlert('danger', 'Error', 'Failed to optimize: ' + error.message);
+            }
+        }
+
+        async function createGreenWave() {
+            try {
+                const response = await fetch(`${API_URL}/api/greenwave`, { method: 'POST' });
+                const data = await response.json();
+                addAlert('success', 'Green Wave Created', `Progressive green wave on row ${data.row}`);
+            } catch (error) {
+                addAlert('danger', 'Error', 'Failed to create green wave: ' + error.message);
+            }
+        }
+
+        async function activateEmergency(type) {
+            try {
+                const response = await fetch(`${API_URL}/api/emergency/${type}`, { method: 'POST' });
+                const data = await response.json();
+                const symbols = {ambulance: '🚑', fire: '🚒', police: '🚓'};
+                addAlert('danger', 'Emergency Route Active', 
+                    `${symbols[type]} ${type.toUpperCase()} route cleared`);
+            } catch (error) {
+                addAlert('danger', 'Error', 'Failed to activate emergency: ' + error.message);
+            }
+        }
+
+        async function clearEmergency() {
+            try {
+                const response = await fetch(`${API_URL}/api/emergency/clear`, { method: 'POST' });
+                const data = await response.json();
+                addAlert('info', 'Emergency Cleared', 'Returning to normal operation');
+            } catch (error) {
+                addAlert('danger', 'Error', 'Failed to clear emergency: ' + error.message);
+            }
+        }
+
         function showLightDetails(id) {
-            const light = lights[id];
-            const x = id % GRID_SIZE;
-            const y = Math.floor(id / GRID_SIZE);
-            const states = ['RED', 'YELLOW', 'GREEN'];
+            if (lights[id]) {
+                const light = lights[id];
+                const states = ['RED', 'YELLOW', 'GREEN'];
+                addAlert('info', `Intersection ${id}`, 
+                    `Position: (${light.x},${light.y})<br>State: ${states[light.state]}<br>` +
+                    `Timer: ${Math.round(light.timer)}s<br>` +
+                    `Green Duration: ${Math.round(light.green_duration)}s`);
+            }
+        }
+
+        // WebSocket connection
+        function connectWebSocket() {
+            socket = io(API_URL);
             
-            addAlert('info', `Intersection ${id}`, 
-                `Position: (${x},${y})<br>State: ${states[light.state]}<br>` +
-                `Density: ${Math.round(light.density * 100)}%<br>` +
-                `Timer: ${Math.round(light.timer)}s`);
+            socket.on('connect', () => {
+                console.log('WebSocket connected');
+                isConnected = true;
+                updateConnectionStatus(true);
+                addAlert('success', 'Connected', 'Real-time connection established');
+            });
+            
+            socket.on('disconnect', () => {
+                console.log('WebSocket disconnected');
+                isConnected = false;
+                updateConnectionStatus(false);
+                addAlert('warning', 'Disconnected', 'Lost connection to server');
+            });
+            
+            socket.on('initial_state', (data) => {
+                console.log('Received initial state:', data);
+                lights = data.lights;
+                updateGrid(data.lights);
+                updateMetrics(data.metrics);
+            });
+            
+            socket.on('update', (data) => {
+                lights = data.lights;
+                updateGrid(data.lights);
+                updateMetrics(data.metrics);
+                updateTimestamp(data.timestamp);
+            });
+            
+            socket.on('alert', (data) => {
+                addAlert(data.type, data.title, data.message);
+            });
         }
 
-        // Update timestamp
-        function updateTimestamp() {
-            const now = new Date();
+        function updateConnectionStatus(connected) {
+            const statusDiv = document.getElementById('connection-status');
+            const indicator = document.getElementById('live-indicator');
+            
+            if (connected) {
+                statusDiv.className = 'connection-status connected';
+                statusDiv.innerHTML = '<strong>✓ Connected to Live System</strong>';
+                indicator.classList.add('connected');
+            } else {
+                statusDiv.className = 'connection-status';
+                statusDiv.innerHTML = '<strong>⚠️ Disconnected from Server</strong>';
+                indicator.classList.remove('connected');
+            }
+        }
+
+        function updateTimestamp(timestamp) {
+            const date = new Date(timestamp);
             document.getElementById('timestamp').textContent = 
-                'Last Update: ' + now.toLocaleTimeString();
+                'Last Update: ' + date.toLocaleTimeString();
         }
 
-        // Initialize and start simulation
+        // Initialize
         initializeGrid();
-        setInterval(simulate, 100);
-        setInterval(updateTimestamp, 1000);
-        updateTimestamp();
-
-        console.log('Traffic Light Control Center initialized');
-        console.log('Click on any light to see details');
+        connectWebSocket();
+        
+        console.log('Traffic Light Control Center - Live Version');
+        console.log('Connecting to:', API_URL);
     </script>
 </body>
 </html>
