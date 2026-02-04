@@ -267,7 +267,6 @@ def handle_emergency_vehicle(self, route, vehicle_type):
 ## 🎯 Future Enhancements
 
 - [ ] Machine learning for traffic prediction
-- [ ] Multi-city coordination
 - [ ] Weather-adaptive timing
 - [ ] Pedestrian crossing optimization
 - [ ] Real sensor data integration
